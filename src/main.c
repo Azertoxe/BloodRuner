@@ -4,13 +4,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 400
+
+#define WINDOW_WIDTH 550
+#define WINDOW_HEIGHT 800
 #define GROUND_HEIGHT 50
 #define DINO_SIZE 50
 #define CACTUS_SIZE 30
 #define PLATFORM_WIDTH 100
 #define PLATFORM_HEIGHT 20
+#define MAX_PLATFORMS 4  // Adjust the maximum number of platforms as needed
 
 typedef struct {
     float x;
@@ -29,6 +31,7 @@ typedef struct {
     float x;
     float y;
 } Platform;
+
 
 void updateDino(Dino *dino, float deltaTime) {
     if (dino->isJumping) {
@@ -49,7 +52,8 @@ sfBool checkCollision(Dino *dino, Platform *platform) {
     return dino->x < platform->x + PLATFORM_WIDTH &&
            dino->x + DINO_SIZE > platform->x &&
            dino->y + DINO_SIZE > platform->y &&
-           dino->y < platform->y + PLATFORM_HEIGHT;
+           dino->y < platform->y + PLATFORM_HEIGHT &&
+           dino->velocity >= 0.0f;
 }
 
 sfBool checkGroundCollision(Dino *dino) {
@@ -59,7 +63,7 @@ sfBool checkGroundCollision(Dino *dino) {
 Platform createRandomPlatform() {
     Platform platform;
     platform.x = WINDOW_WIDTH;
-    platform.y = WINDOW_HEIGHT - GROUND_HEIGHT - (rand() % 100 + 20); // Random height between 20 and 120
+    platform.y = WINDOW_HEIGHT - GROUND_HEIGHT - (rand() % 100 + 60); // Random height between 20 and 120
     return platform;
 }
 

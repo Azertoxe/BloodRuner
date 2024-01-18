@@ -1,1 +1,1 @@
--lcsfml-graphics -lcsfml-window -lcsfml-system
+gcc *.c -lcsfml-graphics -lcsfml-window -lcsfml-system
