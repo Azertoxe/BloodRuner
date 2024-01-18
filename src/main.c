@@ -97,11 +97,13 @@ void drawGame(sfRenderWindow *window, Dino *dino, Platform *platform, Cactus *ca
     // Dessiner le dinosaure
     sfRectangleShape *dinoShape = sfRectangleShape_create();
     sfRectangleShape_setSize(dinoShape, (sfVector2f){DINO_SIZE, DINO_SIZE});
-    sfRectangleShape_setFillColor(dinoShape, sfWhite);
-    sfRectangleShape_setPosition(dinoShape, (sfVector2f){dino->x, dino->y});
-    sfRenderWindow_drawRectangleShape(window, dinoShape, NULL);
-    sfRectangleShape_destroy(dinoShape);
-
+    sfSprite *dinoSprite = sfSprite_create();
+    sfTexture *dinoTexture = sfTexture_createFromFile("asset/goutte.png", NULL);
+    sfSprite_setTexture(dinoSprite, dinoTexture, sfTrue);
+    sfSprite_setPosition(dinoSprite, (sfVector2f){dino->x, dino->y-34});
+    sfRenderWindow_drawSprite(window, dinoSprite, NULL);
+    sfSprite_destroy(dinoSprite);
+    sfTexture_destroy(dinoTexture);
     // Dessiner la plateforme
     drawPlatform(window, platform);
 
@@ -213,7 +215,6 @@ int main() {
             cactus.x -= 300.0f * sfTime_asSeconds(deltaTime);
         }
 
-        // Réinitialiser la plateforme si elle est hors de l'écran
         if (platform.x + PLATFORM_WIDTH < 0) {
             platform = createRandomPlatform();
         } else {
