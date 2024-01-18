@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 #define WINDOW_WIDTH 550
 #define WINDOW_HEIGHT 800
 #define GROUND_HEIGHT 50
@@ -12,7 +11,7 @@
 #define CACTUS_SIZE 30
 #define PLATFORM_WIDTH 100
 #define PLATFORM_HEIGHT 20
-#define MAX_PLATFORMS 4  // Adjust the maximum number of platforms as needed
+#define MAX_PLATFORMS 4
 
 typedef struct {
     float x;
@@ -32,7 +31,6 @@ typedef struct {
     float y;
 } Platform;
 
-
 void updateDino(Dino *dino, float deltaTime) {
     if (dino->isJumping) {
         dino->y += dino->velocity * deltaTime;
@@ -43,8 +41,7 @@ void updateDino(Dino *dino, float deltaTime) {
             dino->isJumping = sfFalse;
         }
     } else if (!dino->isOnPlatform) {
-        // Descendre automatiquement si le dinosaure n'est pas sur une plateforme
-        dino->y += 400.0f * deltaTime;  // Ajustez la vitesse de descente selon vos besoins
+        dino->y += 400.0f * deltaTime;
     }
 }
 
@@ -63,7 +60,7 @@ sfBool checkGroundCollision(Dino *dino) {
 Platform createRandomPlatform() {
     Platform platform;
     platform.x = WINDOW_WIDTH;
-    platform.y = WINDOW_HEIGHT - GROUND_HEIGHT - (rand() % 100 + 60); // Random height between 20 and 120
+    platform.y = WINDOW_HEIGHT - GROUND_HEIGHT - (rand() % 100 + 60);
     return platform;
 }
 
@@ -83,47 +80,55 @@ void drawPlatform(sfRenderWindow *window, Platform *platform) {
     sfRectangleShape_destroy(platformShape);
 }
 
-void drawGame(sfRenderWindow *window, Dino *dino, Platform *platform, Cactus *cactus, int score) {
+void drawGame(sfRenderWindow *window, Dino *dino, Platform *platform, Cactus *cactus, int score, sfSprite *backgroundSprite) {
     sfRenderWindow_clear(window, sfBlack);
 
-    // Dessiner le sol
+    // Move the background
+    sfVector2f backgroundPosition = sfSprite_getPosition(backgroundSprite);
+    sfSprite_setPosition(backgroundSprite, (sfVector2f){backgroundPosition.x - 1.0f, backgroundPosition.y});
+
+    // Draw the background
+    sfRenderWindow_drawSprite(window, backgroundSprite, NULL);
+
+    // Draw the ground
     sfRectangleShape *ground = sfRectangleShape_create();
     sfRectangleShape_setSize(ground, (sfVector2f){WINDOW_WIDTH, GROUND_HEIGHT});
-    sfRectangleShape_setFillColor(ground, sfColor_fromRGB(150, 150, 150));
+    sfRectangleShape_setFillColor(ground, sfRed);
     sfRectangleShape_setPosition(ground, (sfVector2f){0, WINDOW_HEIGHT - GROUND_HEIGHT});
     sfRenderWindow_drawRectangleShape(window, ground, NULL);
     sfRectangleShape_destroy(ground);
 
-    // Dessiner le dinosaure
-    sfRectangleShape *dinoShape = sfRectangleShape_create();
-    sfRectangleShape_setSize(dinoShape, (sfVector2f){DINO_SIZE, DINO_SIZE});
+    // Draw the dinosaur
     sfSprite *dinoSprite = sfSprite_create();
     sfTexture *dinoTexture = sfTexture_createFromFile("asset/goutte.png", NULL);
     sfSprite_setTexture(dinoSprite, dinoTexture, sfTrue);
-    sfSprite_setPosition(dinoSprite, (sfVector2f){dino->x, dino->y-34});
+    sfSprite_setPosition(dinoSprite, (sfVector2f){dino->x, dino->y - 34});
     sfRenderWindow_drawSprite(window, dinoSprite, NULL);
     sfSprite_destroy(dinoSprite);
     sfTexture_destroy(dinoTexture);
-    // Dessiner la plateforme
+
+    // Draw the platform
     drawPlatform(window, platform);
 
-    // Dessiner le cactus
+    // Draw the cactus
     sfRectangleShape *cactusShape = sfRectangleShape_create();
-    sfRectangleShape_setSize(cactusShape, (sfVector2f){CACTUS_SIZE, CACTUS_SIZE});
-    sfRectangleShape_setFillColor(cactusShape, sfGreen);
-    sfRectangleShape_setPosition(cactusShape, (sfVector2f){cactus->x, cactus->y});
-    sfRenderWindow_drawRectangleShape(window, cactusShape, NULL);
-    sfRectangleShape_destroy(cactusShape);
+    sfSprite *cactusSprite = sfSprite_create();
+    sfTexture *cactusTexture = sfTexture_createFromFile("asset/spike.png", NULL);
+    sfSprite_setTexture(cactusSprite, cactusTexture, sfTrue);
+    sfSprite_setPosition(cactusSprite, (sfVector2f){cactus->x, cactus->y+10});
+    sfRenderWindow_drawSprite(window, cactusSprite, NULL);
+    sfSprite_destroy(cactusSprite);
+    sfTexture_destroy(cactusTexture);
 
-    // Afficher le score en haut de la fenêtre
-    sfFont *font = sfFont_createFromFile("arial.ttf");  // Changez le chemin vers le fichier de police si nécessaire
+    // Display the score at the top of the window
+    sfFont *font = sfFont_createFromFile("arial.ttf");
     sfText *scoreText = sfText_create();
     char scoreStr[20];
     sprintf(scoreStr, "Score: %d", score);
     sfText_setString(scoreText, scoreStr);
     sfText_setFont(scoreText, font);
     sfText_setCharacterSize(scoreText, 20);
-    sfText_setFillColor(scoreText, sfWhite);
+    sfText_setFillColor(scoreText, sfBlack);
     sfText_setPosition(scoreText, (sfVector2f){10, 10});
     sfRenderWindow_drawText(window, scoreText, NULL);
     sfText_destroy(scoreText);
@@ -146,7 +151,7 @@ void handleEvents(sfRenderWindow *window, Dino *dino) {
     }
 }
 
-void initializeGame(sfRenderWindow **window, Dino *dino, Platform *platform, Cactus *cactus, sfClock **clock) {
+void initializeGame(sfRenderWindow **window, Dino *dino, Platform *platform, Cactus *cactus, sfClock **clock, sfSprite **backgroundSprite) {
     sfVideoMode mode = {WINDOW_WIDTH, WINDOW_HEIGHT, 32};
     *window = sfRenderWindow_create(mode, "Dino Game", sfResize | sfClose, NULL);
 
@@ -155,6 +160,11 @@ void initializeGame(sfRenderWindow **window, Dino *dino, Platform *platform, Cac
     }
 
     sfRenderWindow_setFramerateLimit(*window, 60);
+
+    // Load the background texture and sprite
+    sfTexture *backgroundTexture = sfTexture_createFromFile("asset/Fond.png", NULL);
+    *backgroundSprite = sfSprite_create();
+    sfSprite_setTexture(*backgroundSprite, backgroundTexture, sfTrue);
 
     dino->x = 100.0f;
     dino->y = WINDOW_HEIGHT - GROUND_HEIGHT - DINO_SIZE;
@@ -174,11 +184,12 @@ int main() {
     Platform platform;
     Cactus cactus;
     sfClock *clock;
+    sfSprite *backgroundSprite;
 
     int score = 0;
-    float scoreTimer = 0.0f; // Temps écoulé depuis la dernière mise à jour du score
+    float scoreTimer = 0.0f;
 
-    initializeGame(&window, &dino, &platform, &cactus, &clock);
+    initializeGame(&window, &dino, &platform, &cactus, &clock, &backgroundSprite);
 
     while (sfRenderWindow_isOpen(window)) {
         handleEvents(window, &dino);
@@ -186,14 +197,14 @@ int main() {
         sfTime deltaTime = sfClock_restart(clock);
         updateDino(&dino, sfTime_asSeconds(deltaTime));
 
-        // Vérifier la collision avec le sol
+        // Check collision with the ground
         if (checkGroundCollision(&dino)) {
             dino.y = WINDOW_HEIGHT - GROUND_HEIGHT - DINO_SIZE;
             dino.isJumping = sfFalse;
-            dino.isOnPlatform = sfFalse;  // Réinitialiser isOnPlatform si le dinosaure n'est plus sur le sol
+            dino.isOnPlatform = sfFalse;
         }
 
-        // Vérifier la collision avec la plateforme
+        // Check collision with the platform
         if (checkCollision(&dino, &platform) && dino.y < platform.y) {
             dino.y = platform.y - DINO_SIZE;
             dino.isJumping = sfFalse;
@@ -202,7 +213,7 @@ int main() {
             dino.isOnPlatform = sfFalse;
         }
 
-        // Mettre à jour le score toutes les 0.1 seconde
+        // Update the score every 0.1 seconds
         scoreTimer += sfTime_asSeconds(deltaTime);
         if (scoreTimer >= 0.1f) {
             score++;
@@ -221,11 +232,12 @@ int main() {
             platform.x -= 300.0f * sfTime_asSeconds(deltaTime);
         }
 
-        drawGame(window, &dino, &platform, &cactus, score);
+        drawGame(window, &dino, &platform, &cactus, score, backgroundSprite);
     }
 
     sfRenderWindow_destroy(window);
     sfClock_destroy(clock);
+    sfSprite_destroy(backgroundSprite);
 
     return EXIT_SUCCESS;
 }
